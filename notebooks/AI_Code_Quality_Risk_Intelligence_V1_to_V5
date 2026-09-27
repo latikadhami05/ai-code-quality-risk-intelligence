@@ -1,1 +1,1989 @@
-
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPICTy/g9fUn5aqMXU54Qwq",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/latikadhami05/ai-code-quality-risk-intelligence/blob/main/notebooks/AI_Code_Quality_Risk_Intelligence_V1_to_V5\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 63,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "vnfkvV6oj9yL",
+        "outputId": "f5f1bacf-d6ff-44b6-96a3-41223085024c"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "fatal: destination path 'requests' already exists and is not an empty directory.\n"
+          ]
+        }
+      ],
+      "source": [
+        "!git clone https://github.com/psf/requests.git"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!git clone https://github.com/pallets/flask.git\n",
+        "!git clone https://github.com/pallets/click.git"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "XQWB_G-vlPs1",
+        "outputId": "7204ac27-1387-433b-edb1-fbb64b38c5a6"
+      },
+      "execution_count": 64,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "fatal: destination path 'flask' already exists and is not an empty directory.\n",
+            "fatal: destination path 'click' already exists and is not an empty directory.\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!ls\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "oGFmA4F7m2AI",
+        "outputId": "f7f57849-95b8-4d40-9980-ff20f2a3aaa9"
+      },
+      "execution_count": 65,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "black  flask\t sample_data\t\t   v1_risk_model.pkl\n",
+            "click  requests  v1_function_features.csv\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!ls requests"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "OjAMQAOpqFHc",
+        "outputId": "39044c32-bb95-4d89-bd7e-1b06533e0e24"
+      },
+      "execution_count": 66,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "AUTHORS.rst  HISTORY.md  MANIFEST.in\t README.md\t       src\n",
+            "docs\t     LICENSE\t NOTICE\t\t requirements-dev.txt  tests\n",
+            "ext\t     Makefile\t pyproject.toml  setup.py\t       tox.ini\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!ls flask"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "JZan7PR03eWQ",
+        "outputId": "c3c3498b-de30-41de-87a8-b6be390904e8"
+      },
+      "execution_count": 67,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "CHANGES.rst  examples\t  pyproject.toml  src\t uv.lock\n",
+            "docs\t     LICENSE.txt  README.md\t  tests\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import ast\n",
+        "import os\n",
+        "import pandas as pd"
+      ],
+      "metadata": {
+        "id": "yPwF0bKPli5p"
+      },
+      "execution_count": 68,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def find_python_files(folder):\n",
+        "    py_files = []\n",
+        "    for root, dirs, files in os.walk(folder):\n",
+        "        for file in files:\n",
+        "            if file.endswith(\".py\"):\n",
+        "                py_files.append(os.path.join(root, file))\n",
+        "    return py_files\n",
+        "\n",
+        "requests_files = find_python_files(\"requests\")\n",
+        "flask_files = find_python_files(\"flask\")\n",
+        "click_files = find_python_files(\"click\")\n",
+        "\n",
+        "print(len(requests_files), \"files in requests\")\n",
+        "print(len(flask_files), \"files in flask\")\n",
+        "print(len(click_files), \"files in click\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "gNFdvI3T3rsA",
+        "outputId": "c029eeb0-33c5-43ab-a976-0270bf62b155"
+      },
+      "execution_count": 69,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "37 files in requests\n",
+            "83 files in flask\n",
+            "91 files in click\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import warnings\n",
+        "warnings.filterwarnings(\"ignore\")\n",
+        "\n",
+        "def get_functions_from_file(filepath):\n",
+        "    try:\n",
+        "        with open(filepath, \"r\", encoding=\"utf-8\") as f:\n",
+        "            source = f.read()\n",
+        "        tree = ast.parse(source)\n",
+        "    except Exception:\n",
+        "        return []\n",
+        "\n",
+        "    functions = []\n",
+        "    for node in ast.walk(tree):\n",
+        "        if isinstance(node, ast.FunctionDef):\n",
+        "            functions.append(node)\n",
+        "    return functions\n",
+        "\n",
+        "sample_functions = get_functions_from_file(requests_files[0])\n",
+        "print(\"File:\", requests_files[0])\n",
+        "print(\"Functions found:\", len(sample_functions))\n",
+        "for fn in sample_functions:\n",
+        "    print(\"-\", fn.name)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "MKjdclaL4AvI",
+        "outputId": "cda6963e-3301-4c6a-a4f9-a642e09f7e21"
+      },
+      "execution_count": 70,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "File: requests/setup.py\n",
+            "Functions found: 0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "sample_functions = get_functions_from_file(requests_files[5])\n",
+        "print(\"File:\", requests_files[5])\n",
+        "print(\"Functions found:\", len(sample_functions))\n",
+        "for fn in sample_functions:\n",
+        "    print(\"-\", fn.name)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "p3QwTKE5YYof",
+        "outputId": "6fb42b20-3245-4078-aaf8-81fcf67764a8"
+      },
+      "execution_count": 71,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "File: requests/tests/test_structures.py\n",
+            "Functions found: 15\n",
+            "- setup\n",
+            "- test_list\n",
+            "- test_getitem\n",
+            "- test_delitem\n",
+            "- test_lower_items\n",
+            "- test_repr\n",
+            "- test_copy\n",
+            "- test_instance_equality\n",
+            "- setup\n",
+            "- test_repr\n",
+            "- test_getitem\n",
+            "- test_get\n",
+            "- test_hasattr\n",
+            "- test_getattr\n",
+            "- test_getattr_default\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def get_function_features(node, source_lines):\n",
+        "    start = node.lineno\n",
+        "    end = max(child.lineno for child in ast.walk(node) if hasattr(child, \"lineno\"))\n",
+        "    loc = end - start + 1\n",
+        "\n",
+        "    complexity = 1\n",
+        "    max_nesting = 0\n",
+        "    branches = 0\n",
+        "    variables = set()\n",
+        "\n",
+        "    def walk_nesting(n, depth):\n",
+        "        nonlocal max_nesting\n",
+        "        max_nesting = max(max_nesting, depth)\n",
+        "        for child in ast.iter_child_nodes(n):\n",
+        "            if isinstance(child, (ast.If, ast.For, ast.While, ast.Try, ast.With)):\n",
+        "                walk_nesting(child, depth + 1)\n",
+        "            else:\n",
+        "                walk_nesting(child, depth)\n",
+        "\n",
+        "    walk_nesting(node, 0)\n",
+        "\n",
+        "    for child in ast.walk(node):\n",
+        "        if isinstance(child, (ast.If, ast.For, ast.While, ast.Try, ast.BoolOp, ast.ExceptHandler)):\n",
+        "            complexity += 1\n",
+        "            branches += 1\n",
+        "        if isinstance(child, ast.Name):\n",
+        "            variables.add(child.id)\n",
+        "\n",
+        "    return {\n",
+        "        \"function_name\": node.name,\n",
+        "        \"loc\": loc,\n",
+        "        \"complexity\": complexity,\n",
+        "        \"max_nesting\": max_nesting,\n",
+        "        \"branches\": branches,\n",
+        "        \"num_variables\": len(variables),\n",
+        "        \"num_args\": len(node.args.args)\n",
+        "    }\n",
+        "\n",
+        "# test it on the functions we found\n",
+        "for fn in sample_functions[:3]:\n",
+        "    print(get_function_features(fn, None))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "6uLbEG6oWxJG",
+        "outputId": "766ea65a-44e4-45bf-e01e-11bc92269de6"
+      },
+      "execution_count": 72,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "{'function_name': 'setup', 'loc': 4, 'complexity': 1, 'max_nesting': 0, 'branches': 0, 'num_variables': 3, 'num_args': 1}\n",
+            "{'function_name': 'test_list', 'loc': 2, 'complexity': 1, 'max_nesting': 0, 'branches': 0, 'num_variables': 2, 'num_args': 1}\n",
+            "{'function_name': 'test_getitem', 'loc': 2, 'complexity': 1, 'max_nesting': 0, 'branches': 0, 'num_variables': 3, 'num_args': 2}\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def build_dataset(file_list, repo_name):\n",
+        "    rows = []\n",
+        "    for filepath in file_list:\n",
+        "        functions = get_functions_from_file(filepath)\n",
+        "        for fn in functions:\n",
+        "            try:\n",
+        "                features = get_function_features(fn, None)\n",
+        "                features[\"file\"] = filepath\n",
+        "                features[\"repo\"] = repo_name\n",
+        "                rows.append(features)\n",
+        "            except Exception:\n",
+        "                continue\n",
+        "    return rows\n",
+        "\n",
+        "requests_data = build_dataset(requests_files, \"requests\")\n",
+        "flask_data = build_dataset(flask_files, \"flask\")\n",
+        "click_data = build_dataset(click_files, \"click\")\n",
+        "\n",
+        "all_data = requests_data + flask_data + click_data\n",
+        "df = pd.DataFrame(all_data)\n",
+        "\n",
+        "print(\"Total functions extracted:\", len(df))\n",
+        "df.head()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 243
+        },
+        "id": "Tbe7ccJuYxit",
+        "outputId": "7c3cfaf9-0eb6-4438-8fc4-db9a81b8e94e"
+      },
+      "execution_count": 42,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Total functions extracted: 4040\n"
+          ]
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "                                       function_name  loc  complexity  \\\n",
+              "0   test_request_url_handles_leading_path_separators    5           1   \n",
+              "1                              echo_response_handler   10           1   \n",
+              "2                                test_chunked_upload   13           1   \n",
+              "3                        test_chunked_encoding_error   22           1   \n",
+              "4  test_chunked_upload_uses_only_specified_host_h...   16           1   \n",
+              "\n",
+              "   max_nesting  branches  num_variables  num_args  \\\n",
+              "0            0         0              3         0   \n",
+              "1            0         0              5         1   \n",
+              "2            1         0             11         0   \n",
+              "3            2         0             13         0   \n",
+              "4            1         0             14         0   \n",
+              "\n",
+              "                              file      repo  \n",
+              "0  requests/tests/test_adapters.py  requests  \n",
+              "1  requests/tests/test_lowlevel.py  requests  \n",
+              "2  requests/tests/test_lowlevel.py  requests  \n",
+              "3  requests/tests/test_lowlevel.py  requests  \n",
+              "4  requests/tests/test_lowlevel.py  requests  "
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-a55c81db-0d02-4404-969f-f2a2d46e9ff6\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>function_name</th>\n",
+              "      <th>loc</th>\n",
+              "      <th>complexity</th>\n",
+              "      <th>max_nesting</th>\n",
+              "      <th>branches</th>\n",
+              "      <th>num_variables</th>\n",
+              "      <th>num_args</th>\n",
+              "      <th>file</th>\n",
+              "      <th>repo</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>test_request_url_handles_leading_path_separators</td>\n",
+              "      <td>5</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>3</td>\n",
+              "      <td>0</td>\n",
+              "      <td>requests/tests/test_adapters.py</td>\n",
+              "      <td>requests</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>echo_response_handler</td>\n",
+              "      <td>10</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>5</td>\n",
+              "      <td>1</td>\n",
+              "      <td>requests/tests/test_lowlevel.py</td>\n",
+              "      <td>requests</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>test_chunked_upload</td>\n",
+              "      <td>13</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>11</td>\n",
+              "      <td>0</td>\n",
+              "      <td>requests/tests/test_lowlevel.py</td>\n",
+              "      <td>requests</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>test_chunked_encoding_error</td>\n",
+              "      <td>22</td>\n",
+              "      <td>1</td>\n",
+              "      <td>2</td>\n",
+              "      <td>0</td>\n",
+              "      <td>13</td>\n",
+              "      <td>0</td>\n",
+              "      <td>requests/tests/test_lowlevel.py</td>\n",
+              "      <td>requests</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>test_chunked_upload_uses_only_specified_host_h...</td>\n",
+              "      <td>16</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>14</td>\n",
+              "      <td>0</td>\n",
+              "      <td>requests/tests/test_lowlevel.py</td>\n",
+              "      <td>requests</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-a55c81db-0d02-4404-969f-f2a2d46e9ff6')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-a55c81db-0d02-4404-969f-f2a2d46e9ff6 button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-a55c81db-0d02-4404-969f-f2a2d46e9ff6');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "variable_name": "df",
+              "summary": "{\n  \"name\": \"df\",\n  \"rows\": 4040,\n  \"fields\": [\n    {\n      \"column\": \"function_name\",\n      \"properties\": {\n        \"dtype\": \"string\",\n        \"num_unique_values\": 2547,\n        \"samples\": [\n          \"test_should_bypass_proxies_win_registry\",\n          \"test_POSTBIN_GET_POST_FILES\",\n          \"get_help_option_names\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"loc\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 15,\n        \"min\": 1,\n        \"max\": 196,\n        \"num_unique_values\": 102,\n        \"samples\": [\n          40,\n          68,\n          27\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"complexity\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 2,\n        \"min\": 1,\n        \"max\": 30,\n        \"num_unique_values\": 26,\n        \"samples\": [\n          22,\n          8,\n          1\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"max_nesting\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0,\n        \"min\": 0,\n        \"max\": 8,\n        \"num_unique_values\": 8,\n        \"samples\": [\n          1,\n          4,\n          0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"branches\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 2,\n        \"min\": 0,\n        \"max\": 29,\n        \"num_unique_values\": 26,\n        \"samples\": [\n          21,\n          7,\n          0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"num_variables\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 4,\n        \"min\": 0,\n        \"max\": 60,\n        \"num_unique_values\": 42,\n        \"samples\": [\n          44,\n          8,\n          15\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"num_args\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1,\n        \"min\": 0,\n        \"max\": 18,\n        \"num_unique_values\": 18,\n        \"samples\": [\n          0,\n          1,\n          9\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"file\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 178,\n        \"samples\": [\n          \"requests/src/requests/auth.py\",\n          \"flask/tests/test_logging.py\",\n          \"click/tests/test_utils/test_format_filename.py\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"repo\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"requests\",\n          \"flask\",\n          \"click\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {},
+          "execution_count": 42
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.to_csv(\"v1_function_features.csv\", index=False)\n",
+        "print(\"Saved\", len(df), \"rows to v1_function_features.csv\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "ZdJ1I-B2Zs4-",
+        "outputId": "2df09165-2177-470f-b20b-bed3a47794d8"
+      },
+      "execution_count": 43,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Saved 4040 rows to v1_function_features.csv\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.describe()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 320
+        },
+        "id": "r_zX_t1QZs2V",
+        "outputId": "81e66d7b-b5d8-477f-d985-999befda7464"
+      },
+      "execution_count": 44,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "               loc   complexity  max_nesting     branches  num_variables  \\\n",
+              "count  4040.000000  4040.000000  4040.000000  4040.000000    4040.000000   \n",
+              "mean     11.233911     1.768812     0.471040     0.768812       5.658911   \n",
+              "std      15.159186     2.181086     0.825235     2.181086       4.694161   \n",
+              "min       1.000000     1.000000     0.000000     0.000000       0.000000   \n",
+              "25%       2.000000     1.000000     0.000000     0.000000       2.000000   \n",
+              "50%       6.000000     1.000000     0.000000     0.000000       5.000000   \n",
+              "75%      14.000000     2.000000     1.000000     1.000000       7.000000   \n",
+              "max     196.000000    30.000000     8.000000    29.000000      60.000000   \n",
+              "\n",
+              "          num_args  \n",
+              "count  4040.000000  \n",
+              "mean      1.513366  \n",
+              "std       1.497483  \n",
+              "min       0.000000  \n",
+              "25%       1.000000  \n",
+              "50%       1.000000  \n",
+              "75%       2.000000  \n",
+              "max      18.000000  "
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-84d13659-da0e-431e-a219-1a47748304d9\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>loc</th>\n",
+              "      <th>complexity</th>\n",
+              "      <th>max_nesting</th>\n",
+              "      <th>branches</th>\n",
+              "      <th>num_variables</th>\n",
+              "      <th>num_args</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>count</th>\n",
+              "      <td>4040.000000</td>\n",
+              "      <td>4040.000000</td>\n",
+              "      <td>4040.000000</td>\n",
+              "      <td>4040.000000</td>\n",
+              "      <td>4040.000000</td>\n",
+              "      <td>4040.000000</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>mean</th>\n",
+              "      <td>11.233911</td>\n",
+              "      <td>1.768812</td>\n",
+              "      <td>0.471040</td>\n",
+              "      <td>0.768812</td>\n",
+              "      <td>5.658911</td>\n",
+              "      <td>1.513366</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>std</th>\n",
+              "      <td>15.159186</td>\n",
+              "      <td>2.181086</td>\n",
+              "      <td>0.825235</td>\n",
+              "      <td>2.181086</td>\n",
+              "      <td>4.694161</td>\n",
+              "      <td>1.497483</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>min</th>\n",
+              "      <td>1.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>25%</th>\n",
+              "      <td>2.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>2.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>50%</th>\n",
+              "      <td>6.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>0.000000</td>\n",
+              "      <td>5.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>75%</th>\n",
+              "      <td>14.000000</td>\n",
+              "      <td>2.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "      <td>1.000000</td>\n",
+              "      <td>7.000000</td>\n",
+              "      <td>2.000000</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>max</th>\n",
+              "      <td>196.000000</td>\n",
+              "      <td>30.000000</td>\n",
+              "      <td>8.000000</td>\n",
+              "      <td>29.000000</td>\n",
+              "      <td>60.000000</td>\n",
+              "      <td>18.000000</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-84d13659-da0e-431e-a219-1a47748304d9')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-84d13659-da0e-431e-a219-1a47748304d9 button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-84d13659-da0e-431e-a219-1a47748304d9');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "summary": "{\n  \"name\": \"df\",\n  \"rows\": 8,\n  \"fields\": [\n    {\n      \"column\": \"loc\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1417.4945075224555,\n        \"min\": 1.0,\n        \"max\": 4040.0,\n        \"num_unique_values\": 8,\n        \"samples\": [\n          11.233910891089108,\n          6.0,\n          4040.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"complexity\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1426.423391979374,\n        \"min\": 1.0,\n        \"max\": 4040.0,\n        \"num_unique_values\": 6,\n        \"samples\": [\n          4040.0,\n          1.7688118811881188,\n          30.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"max_nesting\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1427.8381968028134,\n        \"min\": 0.0,\n        \"max\": 4040.0,\n        \"num_unique_values\": 6,\n        \"samples\": [\n          4040.0,\n          0.471039603960396,\n          8.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"branches\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1426.7261344733283,\n        \"min\": 0.0,\n        \"max\": 4040.0,\n        \"num_unique_values\": 6,\n        \"samples\": [\n          4040.0,\n          0.7688118811881188,\n          29.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"num_variables\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1424.231423069994,\n        \"min\": 0.0,\n        \"max\": 4040.0,\n        \"num_unique_values\": 8,\n        \"samples\": [\n          5.658910891089109,\n          5.0,\n          4040.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"num_args\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1427.1047304638578,\n        \"min\": 0.0,\n        \"max\": 4040.0,\n        \"num_unique_values\": 7,\n        \"samples\": [\n          4040.0,\n          1.5133663366336634,\n          2.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {},
+          "execution_count": 44
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df[\"complexity\"].hist(bins=30\n",
+        "                      )"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 447
+        },
+        "id": "ek1e3Hv6Zsyd",
+        "outputId": "14cdb870-c35f-4cf6-b7cf-44c62938364b"
+      },
+      "execution_count": 45,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "<Axes: >"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 45
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "text/plain": [
+              "<Figure size 640x480 with 1 Axes>"
+            ],
+            "image/png": "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\n"
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def assign_risk(row):\n",
+        "    if row[\"complexity\"] > 20 or row[\"max_nesting\"] > 5 or row[\"loc\"] > 100:\n",
+        "        return \"HIGH\"\n",
+        "    elif row[\"complexity\"] > 10 or row[\"max_nesting\"] > 3 or row[\"loc\"] > 50:\n",
+        "        return \"MEDIUM\"\n",
+        "    else:\n",
+        "        return \"LOW\"\n",
+        "\n",
+        "df[\"risk_label\"] = df.apply(assign_risk, axis=1)\n",
+        "df[\"risk_label\"].value_counts()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 209
+        },
+        "id": "vR1uq6uOZsut",
+        "outputId": "53af0cea-5295-46b2-f5fa-7a82397d2468"
+      },
+      "execution_count": 46,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "risk_label\n",
+              "LOW       3918\n",
+              "MEDIUM      97\n",
+              "HIGH        25\n",
+              "Name: count, dtype: int64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>count</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>risk_label</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>LOW</th>\n",
+              "      <td>3918</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>MEDIUM</th>\n",
+              "      <td>97</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>HIGH</th>\n",
+              "      <td>25</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> int64</label>"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 46
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import train_test_split\n",
+        "\n",
+        "feature_columns = [\"loc\", \"complexity\", \"max_nesting\", \"branches\", \"num_variables\", \"num_args\"]\n",
+        "\n",
+        "X = df[feature_columns]\n",
+        "y = df[\"risk_label\"]\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42, stratify=y\n",
+        ")\n",
+        "\n",
+        "print(\"Train size:\", len(X_train))\n",
+        "print(\"Test size:\", len(X_test))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "rmRXeabaZslN",
+        "outputId": "013171df-737e-4da5-a063-ea39edebf92c"
+      },
+      "execution_count": 47,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Train size: 3232\n",
+            "Test size: 808\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.tree import DecisionTreeClassifier\n",
+        "\n",
+        "model = DecisionTreeClassifier(max_depth=5, random_state=42)\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "print(\"Model trained!\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "lUDT8FztZJzx",
+        "outputId": "e425fa45-f521-4b0a-af3a-b2026e7805d5"
+      },
+      "execution_count": 48,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Model trained!\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.metrics import classification_report, confusion_matrix\n",
+        "\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(classification_report(y_test, y_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Jd0UNkFybaYQ",
+        "outputId": "3d7e6fb3-e4a8-444f-ce54-4934fc678f0a"
+      },
+      "execution_count": 49,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       1.00      1.00      1.00        19\n",
+            "\n",
+            "    accuracy                           1.00       808\n",
+            "   macro avg       1.00      1.00      1.00       808\n",
+            "weighted avg       1.00      1.00      1.00       808\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!git clone https://github.com/psf/black.git"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "MnwPvx88bogD",
+        "outputId": "424f32cb-492c-4a95-e095-f27c3a8166ff"
+      },
+      "execution_count": 50,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "fatal: destination path 'black' already exists and is not an empty directory.\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "black_files = find_python_files(\"black\")\n",
+        "black_data = build_dataset(black_files, \"black\")\n",
+        "df_black = pd.DataFrame(black_data)\n",
+        "df_black[\"risk_label\"] = df_black.apply(assign_risk, axis=1)\n",
+        "\n",
+        "print(len(df_black), \"functions found in black\")\n",
+        "df_black[\"risk_label\"].value_counts()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 227
+        },
+        "id": "xjE7bOuecRB4",
+        "outputId": "a43922c9-3748-430d-cfbd-93d4adce5d68"
+      },
+      "execution_count": 51,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "2473 functions found in black\n"
+          ]
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "risk_label\n",
+              "LOW       2343\n",
+              "MEDIUM     100\n",
+              "HIGH        30\n",
+              "Name: count, dtype: int64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>count</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>risk_label</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>LOW</th>\n",
+              "      <td>2343</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>MEDIUM</th>\n",
+              "      <td>100</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>HIGH</th>\n",
+              "      <td>30</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> int64</label>"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 51
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "X_black = df_black[feature_columns]\n",
+        "y_black_true = df_black[\"risk_label\"]\n",
+        "\n",
+        "y_black_pred = model.predict(X_black)\n",
+        "\n",
+        "print(classification_report(y_black_true, y_black_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "xrb8Dwn2cTuf",
+        "outputId": "70bc1e1a-05d7-4e9c-daf8-4d26af362fee"
+      },
+      "execution_count": 52,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00        30\n",
+            "         LOW       1.00      1.00      1.00      2343\n",
+            "      MEDIUM       1.00      1.00      1.00       100\n",
+            "\n",
+            "    accuracy                           1.00      2473\n",
+            "   macro avg       1.00      1.00      1.00      2473\n",
+            "weighted avg       1.00      1.00      1.00      2473\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def generate_report(row, prediction):\n",
+        "    print(\"=\" * 40)\n",
+        "    print(\"CODE RISK ANALYSIS\")\n",
+        "    print(\"=\" * 40)\n",
+        "    print(f\"File: {row['file']}\")\n",
+        "    print(f\"Function: {row['function_name']}()\")\n",
+        "    print(f\"Risk Level: {prediction}\")\n",
+        "    print()\n",
+        "    print(\"Measured Signals:\")\n",
+        "    print(f\"  Lines of Code: {row['loc']}\")\n",
+        "    print(f\"  Cyclomatic Complexity: {row['complexity']}\")\n",
+        "    print(f\"  Max Nesting Depth: {row['max_nesting']}\")\n",
+        "    print(f\"  Branches: {row['branches']}\")\n",
+        "    print()\n",
+        "    print(\"NOTE: This prediction is based on a rule-derived proxy label.\")\n",
+        "    print(\"It does not prove that this code contains a bug.\")\n",
+        "    print(\"=\" * 40)\n",
+        "\n",
+        "# Show a report for one HIGH-risk function found in black\n",
+        "high_risk_examples = df_black[df_black[\"risk_label\"] == \"HIGH\"]\n",
+        "sample_row = high_risk_examples.iloc[0]\n",
+        "sample_pred = model.predict(sample_row[feature_columns].values.reshape(1, -1))[0]\n",
+        "\n",
+        "generate_report(sample_row, sample_pred)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "HAbO8FJqcfFz",
+        "outputId": "8211632b-743c-43f7-d50d-71bfaf451598"
+      },
+      "execution_count": 53,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "========================================\n",
+            "CODE RISK ANALYSIS\n",
+            "========================================\n",
+            "File: black/tests/test_black.py\n",
+            "Function: test_cache_key()\n",
+            "Risk Level: HIGH\n",
+            "\n",
+            "Measured Signals:\n",
+            "  Lines of Code: 29\n",
+            "  Cyclomatic Complexity: 7\n",
+            "  Max Nesting Depth: 6\n",
+            "  Branches: 6\n",
+            "\n",
+            "NOTE: This prediction is based on a rule-derived proxy label.\n",
+            "It does not prove that this code contains a bug.\n",
+            "========================================\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import joblib\n",
+        "joblib.dump(model, \"v1_risk_model.pkl\")\n",
+        "print(\"Model saved.\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "yarQBKQZcsbe",
+        "outputId": "e911bbd0-dfeb-4b2a-89da-13135b3d1d3a"
+      },
+      "execution_count": 54,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Model saved.\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## V1 — Limitations\n",
+        "\n",
+        "- Risk labels are a rule-based proxy (McCabe complexity thresholds), not derived from real historical defects or human review outcomes.\n",
+        "- Model achieves ~100% accuracy because labels are a deterministic function of the same features used for training — this proves the pipeline works end-to-end, not that the model detects real bugs.\n",
+        "- Dataset is imbalanced (3918 LOW vs 122 MEDIUM/HIGH combined).\n",
+        "- Tested on 4 open-source repos (requests, flask, click, black) — all Python, all similar domains (web/dev tooling). Generalization to other languages/domains is untested.\n",
+        "- Next step (V7+): validate against real historical defect data instead of proxy labels."
+      ],
+      "metadata": {
+        "id": "zLugwHpCeL_q"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## V1 — Code Risk Estimator: COMPLETE\n",
+        "\n",
+        "**What was built:**\n",
+        "- A function that finds every `.py` file in a repo automatically\n",
+        "- A function that parses each file with Python's `ast` module and extracts every function definition\n",
+        "- A function that measures each function: lines of code, cyclomatic complexity,\n",
+        "  max nesting depth, branch count, variable count, argument count\n",
+        "- A dataset of 4,040 real functions (from `requests`, `flask`, `click`), each turned into a row of numbers\n",
+        "- A rule-based proxy label (LOW/MEDIUM/HIGH) grounded in McCabe's cyclomatic complexity thresholds\n",
+        "- A trained Decision Tree classifier (baseline model)\n",
+        "- Evaluation on held-out data (80/20 split) — 100% accuracy\n",
+        "- Evaluation on a completely unseen 4th repo (`black`) — 100% accuracy\n",
+        "- A human-readable risk report generator, matching the blueprint's target output format\n",
+        "- Documented limitations (proxy labels, class imbalance, generalization untested beyond similar Python repos)\n",
+        "\n",
+        "**What this proves:** the full pipeline — code → features → model → risk prediction → report — works end to end, on real code, not toy examples.\n",
+        "\n",
+        "**What this does NOT prove:** that the model detects real bugs or real-world risk. The label is a rule, not ground truth. That gap is intentional and is the reason later versions exist."
+      ],
+      "metadata": {
+        "id": "rVBEZz-meIbF"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## V1 — Preprocessing & Error-Handling Notes\n",
+        "\n",
+        "**Preprocessing:** No feature scaling was applied. Decision Trees split on raw\n",
+        "threshold comparisons (e.g. \"is complexity > 10?\"), so they are not sensitive\n",
+        "to feature scale — scaling would not change this model's behavior. This will\n",
+        "be revisited in V2 when comparing scale-sensitive models like Logistic Regression.\n",
+        "\n",
+        "**Error handling verified:** `get_functions_from_file()` wraps parsing in a\n",
+        "try/except — a file with a syntax error or unreadable encoding returns an\n",
+        "empty list instead of crashing the whole pipeline. This was confirmed by\n",
+        "running the extractor across ~200 real files (including non-code files like\n",
+        "setup.py) without any crashes."
+      ],
+      "metadata": {
+        "id": "Z-2a_xrxepf6"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Next: V2 — ML Improvement\n",
+        "- Compare multiple models (Logistic Regression, Random Forest, Gradient Boosting) instead of just one Decision Tree\n",
+        "- Proper train/validation/test split (not just train/test)\n",
+        "- Cross-validation\n",
+        "- Precision/recall/F1 comparison across models\n",
+        "- Real error analysis: manually look at specific false positives/negatives\n",
+        "- Address the class imbalance we found (3918 LOW vs 122 others)\n",
+        "\n",
+        "## V3 — Explainable Risk\n",
+        "- Why did the model say HIGH? (feature importance, SHAP)\n",
+        "\n",
+        "## V4 — AI-Code Intelligence\n",
+        "- Compare AI-generated vs human-written code features\n",
+        "\n",
+        "## V5 — Multi-Dimensional Risk\n",
+        "- Split \"risk\" into separate dimensions (complexity risk, maintainability risk, etc.) instead of one label\n",
+        "\n",
+        "## V6 — Code-Level Localization\n",
+        "- Analyze a whole repository at once, rank files by risk\n",
+        "\n",
+        "## V7 — Change & Historical Intelligence  ← this is where the REAL test happens\n",
+        "- Use git commit history, code churn, actual historical bug-fix commits as ground truth\n",
+        "- This is where we finally move past \"proxy labels\" into something genuinely validated\n",
+        "\n",
+        "## V8 onward\n",
+        "- Git diffs, review prioritization, GitHub PR integration, CI/CD, LLM explanation layer"
+      ],
+      "metadata": {
+        "id": "JqI470F6eWTz"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "##VERSION 2"
+      ],
+      "metadata": {
+        "id": "q_TdhrH-n9Rn"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import train_test_split\n",
+        "\n",
+        "# First split: carve off the test set (locked away until the very end)\n",
+        "X_temp, X_test, y_temp, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42, stratify=y\n",
+        ")\n",
+        "\n",
+        "# Second split: divide the rest into train and validation\n",
+        "X_train, X_val, y_train, y_val = train_test_split(\n",
+        "    X_temp, y_temp, test_size=0.25, random_state=42, stratify=y_temp\n",
+        ")\n",
+        "\n",
+        "print(\"Train size:\", len(X_train))\n",
+        "print(\"Validation size:\", len(X_val))\n",
+        "print(\"Test size:\", len(X_test))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "X6VEzV5En__N",
+        "outputId": "ca74d6e5-3d35-48cc-cd3a-9ff90bd9add7"
+      },
+      "execution_count": 55,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Train size: 2424\n",
+            "Validation size: 808\n",
+            "Test size: 808\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from sklearn.tree import DecisionTreeClassifier\n",
+        "from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier\n",
+        "\n",
+        "models = {\n",
+        "    \"Logistic Regression\": LogisticRegression(max_iter=1000, random_state=42),\n",
+        "    \"Decision Tree\": DecisionTreeClassifier(max_depth=5, random_state=42),\n",
+        "    \"Random Forest\": RandomForestClassifier(n_estimators=100, random_state=42),\n",
+        "    \"Gradient Boosting\": GradientBoostingClassifier(random_state=42),\n",
+        "}\n",
+        "\n",
+        "trained_models = {}\n",
+        "\n",
+        "for name, mdl in models.items():\n",
+        "    mdl.fit(X_train, y_train)\n",
+        "    trained_models[name] = mdl\n",
+        "    print(name, \"trained.\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "yfNr0ZlpoBlO",
+        "outputId": "8c9507b9-78c7-4653-b301-f5ce046e6e47"
+      },
+      "execution_count": 56,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Logistic Regression trained.\n",
+            "Decision Tree trained.\n",
+            "Random Forest trained.\n",
+            "Gradient Boosting trained.\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.metrics import classification_report\n",
+        "\n",
+        "for name, mdl in trained_models.items():\n",
+        "    print(\"=\" * 50)\n",
+        "    print(name)\n",
+        "    print(\"=\" * 50)\n",
+        "    y_val_pred = mdl.predict(X_val)\n",
+        "    print(classification_report(y_val, y_val_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "TBfiVDj4oBgn",
+        "outputId": "1660cc33-17a7-4407-938e-5d7770cc4d13"
+      },
+      "execution_count": 57,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "==================================================\n",
+            "Logistic Regression\n",
+            "==================================================\n",
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       0.83      1.00      0.91         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       0.88      0.79      0.83        19\n",
+            "\n",
+            "    accuracy                           0.99       808\n",
+            "   macro avg       0.90      0.93      0.91       808\n",
+            "weighted avg       0.99      0.99      0.99       808\n",
+            "\n",
+            "==================================================\n",
+            "Decision Tree\n",
+            "==================================================\n",
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       1.00      1.00      1.00        19\n",
+            "\n",
+            "    accuracy                           1.00       808\n",
+            "   macro avg       1.00      1.00      1.00       808\n",
+            "weighted avg       1.00      1.00      1.00       808\n",
+            "\n",
+            "==================================================\n",
+            "Random Forest\n",
+            "==================================================\n",
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       1.00      1.00      1.00        19\n",
+            "\n",
+            "    accuracy                           1.00       808\n",
+            "   macro avg       1.00      1.00      1.00       808\n",
+            "weighted avg       1.00      1.00      1.00       808\n",
+            "\n",
+            "==================================================\n",
+            "Gradient Boosting\n",
+            "==================================================\n",
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       1.00      1.00      1.00        19\n",
+            "\n",
+            "    accuracy                           1.00       808\n",
+            "   macro avg       1.00      1.00      1.00       808\n",
+            "weighted avg       1.00      1.00      1.00       808\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import cross_val_score\n",
+        "\n",
+        "for name, mdl in models.items():\n",
+        "    scores = cross_val_score(mdl, X_train, y_train, cv=5, scoring=\"f1_macro\")\n",
+        "    print(name, \"F1 scores across 5 folds:\", scores)\n",
+        "    print(name, \"Average F1:\", scores.mean())\n",
+        "    print()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "SM_ICCtVoBYu",
+        "outputId": "36eabe92-49e8-4e34-97aa-5a397e128de0"
+      },
+      "execution_count": 58,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Logistic Regression F1 scores across 5 folds: [0.81301189 0.84822883 0.68347857 0.95095645 0.63998662]\n",
+            "Logistic Regression Average F1: 0.7871324718066678\n",
+            "\n",
+            "Decision Tree F1 scores across 5 folds: [0.92       0.92       0.76       1.         0.91884058]\n",
+            "Decision Tree Average F1: 0.903768115942029\n",
+            "\n",
+            "Random Forest F1 scores across 5 folds: [0.80769231 0.90520132 1.         0.98631168 0.80555556]\n",
+            "Random Forest Average F1: 0.900952172961856\n",
+            "\n",
+            "Gradient Boosting F1 scores across 5 folds: [0.92       1.         0.76       1.         0.91884058]\n",
+            "Gradient Boosting Average F1: 0.919768115942029\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.metrics import confusion_matrix\n",
+        "import numpy as np\n",
+        "\n",
+        "best_model = trained_models[\"Gradient Boosting\"]\n",
+        "y_val_pred = best_model.predict(X_val)\n",
+        "\n",
+        "labels = [\"LOW\", \"MEDIUM\", \"HIGH\"]\n",
+        "cm = confusion_matrix(y_val, y_val_pred, labels=labels)\n",
+        "\n",
+        "print(\"Confusion Matrix (rows = actual, columns = predicted)\")\n",
+        "print(\"Labels order:\", labels)\n",
+        "print(cm)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "7rtv-IIwE3Tz",
+        "outputId": "0fc8a1df-ddf6-4233-be6f-6568e7d9a8a9"
+      },
+      "execution_count": 59,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Confusion Matrix (rows = actual, columns = predicted)\n",
+            "Labels order: ['LOW', 'MEDIUM', 'HIGH']\n",
+            "[[784   0   0]\n",
+            " [  0  19   0]\n",
+            " [  0   0   5]]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "final_model = trained_models[\"Gradient Boosting\"]\n",
+        "y_test_pred = final_model.predict(X_test)\n",
+        "\n",
+        "print(classification_report(y_test, y_test_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "jrqau16lIDHR",
+        "outputId": "86babaed-47bc-48f3-9f6d-5874bbf33195"
+      },
+      "execution_count": 60,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       1.00      1.00      1.00        19\n",
+            "\n",
+            "    accuracy                           1.00       808\n",
+            "   macro avg       1.00      1.00      1.00       808\n",
+            "weighted avg       1.00      1.00      1.00       808\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## V2 — Model Comparison Results\n",
+        "\n",
+        "Four models were compared: Logistic Regression, Decision Tree, Random Forest,\n",
+        "and Gradient Boosting.\n",
+        "\n",
+        "**Single validation split:** All models except Logistic Regression scored 100%.\n",
+        "Logistic Regression underperformed (79% recall on MEDIUM class), because it\n",
+        "draws smooth mathematical boundaries, while our proxy labels are defined by\n",
+        "sharp threshold rules — a structural mismatch tree-based models don't have.\n",
+        "\n",
+        "**5-fold cross-validation** (more reliable): revealed real inconsistency hidden\n",
+        "by the single split. F1-macro scores varied significantly across folds for\n",
+        "every model (e.g. Gradient Boosting ranged 0.76–1.00), directly caused by the\n",
+        "severe class imbalance (only 25 HIGH and 97 MEDIUM examples out of 4,040 total).\n",
+        "\n",
+        "**Selected model: Gradient Boosting** — highest average cross-validated F1\n",
+        "(0.92) and most consistent across folds.\n",
+        "\n",
+        "**Final test set result:** 100% accuracy — but this reflects the clean,\n",
+        "rule-based nature of our V1 proxy labels, not proof the model would achieve\n",
+        "this on real, messier/human-judged risk labels.\n",
+        "\n",
+        "**Key finding**: cross-validation exposed instability that a single train/val/\n",
+        "test split concealed — demonstrating why relying on one split alone is\n",
+        "insufficient methodology for imbalanced datasets."
+      ],
+      "metadata": {
+        "id": "hYfqw9iLI0qf"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Re-train Gradient Boosting from scratch with the same settings, confirm identical result\n",
+        "check_model = GradientBoostingClassifier(random_state=42)\n",
+        "check_model.fit(X_train, y_train)\n",
+        "check_pred = check_model.predict(X_test)\n",
+        "\n",
+        "print(classification_report(y_test, check_pred))"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "1iKBKpWtcL-J",
+        "outputId": "d1db3adf-f129-487f-b562-5997e54d1787"
+      },
+      "execution_count": 73,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "        HIGH       1.00      1.00      1.00         5\n",
+            "         LOW       1.00      1.00      1.00       784\n",
+            "      MEDIUM       1.00      1.00      1.00        19\n",
+            "\n",
+            "    accuracy                           1.00       808\n",
+            "   macro avg       1.00      1.00      1.00       808\n",
+            "weighted avg       1.00      1.00      1.00       808\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import StratifiedKFold\n",
+        "\n",
+        "skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\n",
+        "\n",
+        "for fold_num, (train_idx, test_idx) in enumerate(skf.split(X_train, y_train)):\n",
+        "    fold_model = GradientBoostingClassifier(random_state=42)\n",
+        "    fold_model.fit(X_train.iloc[train_idx], y_train.iloc[train_idx])\n",
+        "    fold_pred = fold_model.predict(X_train.iloc[test_idx])\n",
+        "\n",
+        "    fold_true = y_train.iloc[test_idx]\n",
+        "    mistakes = fold_true[fold_true.values != fold_pred]\n",
+        "\n",
+        "    if len(mistakes) > 0:\n",
+        "        print(f\"Fold {fold_num}: {len(mistakes)} mistakes found\")\n",
+        "        mistake_indices = mistakes.index\n",
+        "        print(df.loc[mistake_indices, [\"function_name\", \"loc\", \"complexity\", \"max_nesting\", \"risk_label\"]])\n",
+        "        print()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Pk7ICAzicLxJ",
+        "outputId": "017bb15e-d3c0-4ad9-8c7a-825950e169a6"
+      },
+      "execution_count": 74,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Fold 0: 2 mistakes found\n",
+            "    function_name  loc  complexity  max_nesting risk_label\n",
+            "531       request   97           5            1     MEDIUM\n",
+            "665     super_len   69          19            5     MEDIUM\n",
+            "\n",
+            "Fold 2: 1 mistakes found\n",
+            "                                   function_name  loc  complexity  \\\n",
+            "2447  test_hiding_of_unset_sentinel_in_callbacks  108           1   \n",
+            "\n",
+            "      max_nesting risk_label  \n",
+            "2447            0       HIGH  \n",
+            "\n",
+            "Fold 3: 2 mistakes found\n",
+            "     function_name  loc  complexity  max_nesting risk_label\n",
+            "482   prepare_body   77          22            4       HIGH\n",
+            "3880      open_url   68          24            5       HIGH\n",
+            "\n",
+            "Fold 4: 1 mistakes found\n",
+            "         function_name  loc  complexity  max_nesting risk_label\n",
+            "3696  _resolve_context   59           7            6       HIGH\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## V2 — Error Analysis Findings\n",
+        "\n",
+        "All 6 misclassified examples across cross-validation folds occurred at or\n",
+        "near a labeling threshold boundary (e.g. LOC=97 vs. cutoff 100; complexity=19\n",
+        "vs. cutoff 20; nesting=5 vs. cutoff 5). This suggests the errors stem from\n",
+        "the rigidity of hard-cutoff proxy labels, not from a flaw in the model or\n",
+        "features themselves — models will always struggle near a hard boundary,\n",
+        "since real code complexity is continuous, not naturally divided into sharp\n",
+        "categories.\n",
+        "\n",
+        "One case (`test_hiding_of_unset_sentinel_in_callbacks`) exposes a genuine\n",
+        "labeling weakness: a long but structurally simple function (complexity=1,\n",
+        "nesting=0) was labeled HIGH purely due to line count. This is a real\n",
+        "limitation of LOC-based proxy labeling and a legitimate target for\n",
+        "refinement in future versions."
+      ],
+      "metadata": {
+        "id": "qe8GhhKEcmGx"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "##VERSION 3"
+      ],
+      "metadata": {
+        "id": "nRk_6otrJ_42"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "importances = final_model.feature_importances_\n",
+        "feature_names = feature_columns\n",
+        "\n",
+        "importance_df = pd.DataFrame({\n",
+        "    \"feature\": feature_names,\n",
+        "    \"importance\": importances\n",
+        "}).sort_values(\"importance\", ascending=False)\n",
+        "\n",
+        "print(importance_df)\n",
+        "\n",
+        "plt.barh(importance_df[\"feature\"], importance_df[\"importance\"])\n",
+        "plt.xlabel(\"Importance\")\n",
+        "plt.title(\"Global Feature Importance — Gradient Boosting\")\n",
+        "plt.show()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 553
+        },
+        "id": "Ng5mKleQIomZ",
+        "outputId": "1829c437-7e09-4e8d-9f81-2f4e10e6a957"
+      },
+      "execution_count": 61,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "         feature    importance\n",
+            "0            loc  6.876922e-01\n",
+            "2    max_nesting  1.886017e-01\n",
+            "1     complexity  6.821401e-02\n",
+            "3       branches  5.032611e-02\n",
+            "5       num_args  5.165994e-03\n",
+            "4  num_variables  4.715362e-11\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "text/plain": [
+              "<Figure size 640x480 with 1 Axes>"
+            ],
+            "image/png": "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4+vaq1cv+7LU1FRz7733GpvNZsaNG2dfnpiYaDw9PR1qzejznnvuMcnJyfblH374oZFkJk2aZIwx5vLly6Zo0aKmXLly5s8//7S3+/LLL40kM3ToUPuyzp07G0nmxRdfzPQaGjdubCIiIjItT01NNSkpKQ7LEhMTTXBwsOnWrZt9WcZ7p3Dhwubs2bP25Z999pmRZL744gv7sjp16hhfX19z+PBhh37//l7p3r27CQ0NNX/88YdDm3bt2hl/f/8s3ze5rUWLFkaSOXfunMPyP//80+HznZiYaF+X8XUsXrx4ppqz+7mcOHGikWQ+/PBD+7KLFy+akiVLZvpMdO7c2eHr+L///c9IMvPnz3fYz9dff51pecb3k3Xr1tmXnT592ri7u5v+/fvbl93os5iVjM/CtY+AgADz9ddfO7TNeK3//e9/7csuX75sqlevbnx8fOyfhU8//dRIMqNHj3bYvnXr1sZms5kDBw4YY4x58803jSTz+++/X7e+LVu2XPf73rXjmZP3efny5c29995rzp8/b1+2du1aIynLz1pBx2FWWEJycrKk/5/R+Lu6desqKCjI/nj77bev289XX30lSXruuecclvfv31/S1d/2/i4sLEwtWrSwP/fz81OnTp20bds2nTx5UpLk7u5uPz8nLS1NZ86csR9u+PHHH3P6Uu2GDh2qlStXOjxCQkK0fft27d+/X48//rjOnDmjP/74Q3/88YcuXryoevXqad26dfaTijNmlyTpypUrOnPmjEqWLKmAgIDbqu1GevbsKWdnZ/vzlStX6ty5c2rfvr291j/++EPOzs6qVq1apkOKOdGjRw/7/52dnVWlShUZY9S9e3f78oCAAEVHR+vXX3/NtH2nTp3k6+trf966dWuFhoba3yc//PCDTp8+raeeekoeHh72do0bN1bp0qUzvV8k6d///ne263d2dpabm5ukqzMqZ8+eVWpqqqpUqZLl16dt27YKDAy0P8+Y6ch4bb///rvWrVunbt266b777nPYNuMWPcYYffTRR2ratKmMMQ5fk/j4eCUlJeXae+NGrvcZf+eddxw+37Vq1cq0befOnR3e61L2P5dfffWVQkNDHc5P9fLyUq9evW5a8+LFi+Xv769HHnnEYRxjY2Pl4+OT6b1dpkwZ+9dMkoKCgq773sypjz76SCtXrtSKFSs0a9YslSpVSq1a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HD16NMf7BAAA1nHXXQDh6el52324uro6PLfZbFkuu51zzi5cuKDevXurb9++mdbdd9999v+vW7dOzs7OOnHihC5evChfX98c7cfNzU2dOnXSrFmz1LJlSy1YsECTJk26bnt3d3e5u7vnaB8AAMC67rqZuaioKHl6emr16tWZ1sXExOinn36yX2QgSRs2bJCTk5Oio6Nve9+bNm2y/z81NVVbt25VTExMlm3vv/9+7d69WyVLlsz0cHNzkyR99913evXVV/XFF1/Ix8cn07l913J1dVVaWlqm5T169NCqVas0depUpaamqmXLlrfxKgEAQEFy14U5Dw8PDRw4UC+88ILmzp2rgwcPatOmTXrvvffUoUMHeXh4qHPnztq1a5fWrFmjZ555Rh07dlRwcPBt7/vtt9/WJ598or179+rpp59WYmKiunXrlmXbgQMH6rvvvlOfPn20fft27d+/X5999pk9sJ0/f14dO3ZU37591bBhQ82fP1+LFi3SkiVLrrv/yMhIrV69WidPnlRiYqJ9eUxMjB588EENHDhQ7du3vyOzlwAAoGC468KcJA0ZMkT9+/fX0KFDFRMTo7Zt2+r06dPy8vLS8uXLdfbsWVWtWlWtW7dWvXr1NGXKlDuy33HjxmncuHGqWLGi1q9fr88//1xFihTJsm2FChX07bff6pdfflHt2rVVuXJlDR06VGFhYZKkZ599Vt7e3hozZowkqXz58hozZox69+6tY8eOZdnnhAkTtHLlSoWHh6ty5coO67p3767Lly9fN1wCAIB/JpsxxuR3EfktISFBxYoV07Zt21SpUqX8LidLo0aN0uLFi7Vjx44cbZecnHz1qtZ+H8rJPfMtUe52CeMa53cJAADkuYyf30lJSfLz87th27tyZg7/78KFC9q1a5emTJmiZ555Jr/LAQAAdxnC3F2uT58+io2NVd26dTnECgAAMrnrbk2SHyIjI3W3Hm2ePXu2Zs+end9lAACAuxQzcwAAABZGmAMAALAwwhwAAICFEeYAAAAsjDAHAABgYYQ5AAAACyPMAQAAWBhhDgAAwMIIcwAAABZGmAMAALAwwhwAAICFEeYAAAAsjDAHAABgYS75XQDyxq4R8fLz88vvMgAAwB3GzBwAAICFEeYAAAAsjDAHAABgYYQ5AAAACyPMAQAAWBhhDgAAwMIIcwAAABZGmAMAALAw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/PFHjuqtUKGC5syZoytXrmQKfcHBwQoLC9Ovv/6qDh065KhfAHcOYQ4A8tDIkSNVuHBhBQcH6+WXX1aRIkXs96/r37+/qlatqlGjRqlt27bauHGjpkyZctOrQ4sWLSpPT099/fXXuvfee+Xh4SF/f39FRUVp3rx5qlKlipKTk/X888/fcKYtK3369NHkyZPVrl07DRo0SP7+/tq0aZMeeOABRUdHa8SIEerbt6/8/f3VoEEDpaSk6IcfflBiYqKee+65Wx0mADnAOXMAkIfGjRunZ599VrGxsTp58qS++OIL+8za/fffrw8//FALFy5UuXLlNHToUI0cOVJdunS5YZ8uLi5666239O677yosLEzNmjWTJL333ntKTEzU/fffr44dO6pv374qWrRojuotXLiwvvnmG124cEFxcXGKjY3VjBkz7LN0PXr00MyZMzVr1iyVL19ecXFxmj17tv12KQByn80YY/K7CAAo6NauXauHHnpIiYmJCggIyO9yABQgzMwBAABYGGEOAADAwjjMCgAAYGHMzAEAAFgYYQ4AAMDCCHMAAAAWRpgDAACwMMIcAACAhRHmAAAALIwwBwAAYGGEOQAAAAsjzAEAAFjY/wHvF8T5ijnMMgAAAABJRU5ErkJggg==\n"
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Pick one HIGH-risk function from the black test set (used earlier in V1)\n",
+        "sample_row = df_black[df_black[\"risk_label\"] == \"HIGH\"].iloc[0]\n",
+        "sample_features = sample_row[feature_columns]\n",
+        "\n",
+        "prediction = final_model.predict(sample_features.values.reshape(1, -1))[0]\n",
+        "\n",
+        "print(\"Function:\", sample_row[\"function_name\"])\n",
+        "print(\"Predicted Risk:\", prediction)\n",
+        "print()\n",
+        "print(\"Actual measured values for this function:\")\n",
+        "print(sample_features)\n",
+        "print()\n",
+        "print(\"Reminder — global feature importance ranking (most to least influential):\")\n",
+        "print(importance_df)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "zKXC52qcKDWL",
+        "outputId": "712e9c2c-f781-4661-b6a2-3a39d7493b8d"
+      },
+      "execution_count": 62,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Function: test_cache_key\n",
+            "Predicted Risk: HIGH\n",
+            "\n",
+            "Actual measured values for this function:\n",
+            "loc              29\n",
+            "complexity        7\n",
+            "max_nesting       6\n",
+            "branches          6\n",
+            "num_variables    19\n",
+            "num_args          1\n",
+            "Name: 184, dtype: object\n",
+            "\n",
+            "Reminder — global feature importance ranking (most to least influential):\n",
+            "         feature    importance\n",
+            "0            loc  6.876922e-01\n",
+            "2    max_nesting  1.886017e-01\n",
+            "1     complexity  6.821401e-02\n",
+            "3       branches  5.032611e-02\n",
+            "5       num_args  5.165994e-03\n",
+            "4  num_variables  4.715362e-11\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "_IIzONsiKee0"
+      },
+      "execution_count": 62,
+      "outputs": []
+    }
+  ]
+}

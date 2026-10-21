@@ -1,0 +1,18 @@
+==================================================
+PR #7589 — perf: optimizations in core components
+==================================================
+Overall Review Attention: LOW
+
+Analyzed Functions:
+1. unicode_is_ascii()  [LOW]  (file: src/requests/_internal_utils.py)
+   loc=9, complexity=1, max_nesting=0
+2. cookiejar_from_dict()  [LOW]  (file: src/requests/cookies.py)
+   loc=23, complexity=6, max_nesting=3
+3. apparent_encoding()  [LOW]  (file: src/requests/models.py)
+   loc=8, complexity=2, max_nesting=1
+4. resolve_proxies()  [LOW]  (file: src/requests/utils.py)
+   loc=29, complexity=4, max_nesting=2
+
+Note: this report reflects MODEL predictions (trained Gradient
+Boosting classifier), cross-checked against rule-based labels.
+==================================================

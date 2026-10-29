@@ -1,0 +1,44 @@
+name: PR risk analysis
+
+# Run whenever a pull request is opened or updated
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Least privilege: read the repo, write only PR comments
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Analyze this pull request
+        env:
+          # GitHub supplies this automatically; it is never written in code
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m src.analysis.pr_analyzer \
+            ${{ github.repository_owner }} \
+            ${{ github.event.repository.name }} \
+            ${{ github.event.pull_request.number }} \
+            --out report.md
+
+      - name: Save the report as a downloadable artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-risk-report
+          path: report.md

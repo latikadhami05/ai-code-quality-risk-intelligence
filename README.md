@@ -335,3 +335,11 @@ AI tools may assist development, but generated code and explanations must be und
 B.Tech Computer Science
 VMSB Uttarakhand Technical University
 
+## Using the PR bot
+
+Open or update a pull request in this repo. The "PR risk analysis" GitHub
+Action runs automatically, posts a review-risk summary comment, and saves
+the report as an artifact. The result is advisory only: it never blocks a
+merge and does not prove that a bug exists. Run it locally with:
+`python -m src.analysis.pr_analyzer OWNER REPO PR_NUMBER`
+
